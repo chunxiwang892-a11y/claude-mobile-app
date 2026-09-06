@@ -1,0 +1,46 @@
+name: claude_mobile
+description: Claude Code 移动端原生应用
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.0.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  # UI组件
+  cupertino_icons: ^1.0.6
+  flutter_animate: ^4.5.0
+  shimmer: ^3.0.0
+
+  # 网络通信
+  web_socket_channel: ^2.4.0
+  http: ^1.1.0
+
+  # 状态管理
+  provider: ^6.1.1
+
+  # 本地存储
+  shared_preferences: ^2.2.2
+
+  # 推送通知
+  flutter_local_notifications: ^16.3.0
+
+  # 其他
+  intl: ^0.18.1
+  url_launcher: ^6.2.2
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^3.0.1
+
+flutter:
+  uses-material-design: true
+
+  fonts:
+    - family: CustomIcons
+      fonts:
+        - asset: assets/fonts/icons.ttf
