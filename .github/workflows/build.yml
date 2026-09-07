@@ -40,7 +40,11 @@ jobs:
           find android -maxdepth 1 -name "settings.gradle*" -exec cat {} \;
           for f in android/settings.gradle.kts android/settings.gradle; do
             if [ -f "$f" ]; then
-   ...[truncated 24 chars]
+              sed -i -E 's/(kotlin\.android["'"'"']? *)version *["'"'"']?[0-9.]+["'"'"']?/\11.9.22/' "$f"
+              echo "== $f 修改后 =="
+              cat "$f"
+            fi
+          done
 
       - name: 获取依赖
         run: flutter pub get
