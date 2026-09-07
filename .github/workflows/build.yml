@@ -36,7 +36,11 @@ jobs:
 
       - name: 升级Kotlin版本（修复与通知库的编译冲突）
         run: |
-          sed -i 's/id "org.jetbrains.kotlin.android" version "[0-9.]*" apply false/id "org.jetbrains.kotlin.android" version "1.9.22" apply false/' android/settings.gradle.kts
+          echo "== settings.gradle(.kts) 实际内容 =="
+          find android -maxdepth 1 -name "settings.gradle*" -exec cat {} \;
+          for f in android/settings.gradle.kts android/settings.gradle; do
+            if [ -f "$f" ]; then
+   ...[truncated 24 chars]
 
       - name: 获取依赖
         run: flutter pub get
