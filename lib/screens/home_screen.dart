@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../services/websocket_service.dart';
 import '../widgets/status_card.dart';
 import '../widgets/message_bubble.dart';
+import 'settings_screen.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -19,9 +21,13 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     super.initState();
-    // 连接WebSocket
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<WebSocketService>().connect('ws://10.151.10.27:5678');
+    // 从保存的配置连接WebSocket
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      final prefs = await SharedPreferences.getInstance();
+      final savedUrl = prefs.getString('server_url') ?? 'wss://pursuit-nutmeg-matchbook.ngrok-free.dev';
+      if (mounted) {
+        context.read<WebSocketService>().connect(savedUrl);
+      }
     });
   }
 
@@ -150,40 +156,48 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
           const Spacer(),
           Consumer<WebSocketService>(
-            builder: (context, ws, _) => Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-              decoration: BoxDecoration(
-                color: ws.isConnected
-                    ? Colors.green.withOpacity(0.2)
-                    : Colors.red.withOpacity(0.2),
-                borderRadius: BorderRadius.circular(20),
-                border: Border.all(
-                  color: ws.isConnected ? Colors.green : Colors.red,
-                  width: 1.5,
-                ),
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Container(
-                    width: 8,
-                    height: 8,
-                    decoration: BoxDecoration(
-                      color: ws.isConnected ? Colors.green : Colors.red,
-                      shape: BoxShape.circle,
-                    ),
-                  ).animate(onPlay: (controller) => controller.repeat())
-                    .fade(begin: 1, end: 0.3, duration: 1.seconds),
-                  const SizedBox(width: 6),
-                  Text(
-                    ws.isConnected ? '已连接' : '已断开',
-                    style: TextStyle(
-                      fontSize: 11,
-                      fontWeight: FontWeight.w600,
-                      color: ws.isConnected ? Colors.green : Colors.red,
-                    ),
+            builder: (context, ws, _) => GestureDetector(
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const SettingsScreen()),
+                );
+              },
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                decoration: BoxDecoration(
+                  color: ws.isConnected
+                      ? Colors.green.withOpacity(0.2)
+                      : Colors.red.withOpacity(0.2),
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(
+                    color: ws.isConnected ? Colors.green : Colors.red,
+                    width: 1.5,
                   ),
-                ],
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Container(
+                      width: 8,
+                      height: 8,
+                      decoration: BoxDecoration(
+                        color: ws.isConnected ? Colors.green : Colors.red,
+                        shape: BoxShape.circle,
+                      ),
+                    ).animate(onPlay: (controller) => controller.repeat())
+                      .fade(begin: 1, end: 0.3, duration: 1.seconds),
+                    const SizedBox(width: 6),
+                    Text(
+                      ws.isConnected ? '已连接' : '已断开',
+                      style: TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w600,
+                        color: ws.isConnected ? Colors.green : Colors.red,
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
           ),
