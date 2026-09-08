@@ -36,11 +36,12 @@ jobs:
 
       - name: 升级Kotlin版本（修复与通知库的编译冲突）
         run: |
-          echo "== settings.gradle(.kts) 实际内容 =="
+          echo "== settings.gradle(.kts) 原始内容 =="
           find android -maxdepth 1 -name "settings.gradle*" -exec cat {} \;
           for f in android/settings.gradle.kts android/settings.gradle; do
             if [ -f "$f" ]; then
-              sed -i -E 's/(kotlin\.android["'"'"']? *)version *["'"'"']?[0-9.]+["'"'"']?/\11.9.22/' "$f"
+              sed -i -E 's/(kotlin\.android[^)]*version +)"[0-9.]+"/\1"1.9.22"/' "$f"
+              sed -i -E "s/(kotlin\.android[^)]*version +)'[0-9.]+'/\1'1.9.22'/" "$f"
               echo "== $f 修改后 =="
               cat "$f"
             fi
