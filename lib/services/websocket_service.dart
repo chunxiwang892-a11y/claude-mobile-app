@@ -1,7 +1,6 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
-import 'package:http/http.dart' as http;
 import 'notification_service.dart';
 
 class WebSocketService extends ChangeNotifier {
@@ -19,7 +18,7 @@ class WebSocketService extends ChangeNotifier {
 
   void connect(String url) {
     try {
-      _serverUrl = url.replaceAll('ws://', 'http://');
+      _serverUrl = url.replaceAll('wss://', 'https://').replaceAll('ws://', 'http://');
       _channel = WebSocketChannel.connect(Uri.parse(url));
       _isConnected = true;
       notifyListeners();
@@ -38,8 +37,6 @@ class WebSocketService extends ChangeNotifier {
         },
       );
 
-      // 请求初始状态
-      _requestState();
     } catch (e) {
       _isConnected = false;
       notifyListeners();
@@ -50,13 +47,19 @@ class WebSocketService extends ChangeNotifier {
     try {
       final parsed = jsonDecode(data);
 
-      if (parsed.containsKey('status')) {
-        final oldStatus = _status;
-        _status = parsed['status'] ?? 'idle';
-        _currentTask = parsed['current_task'] ?? '无';
+      // 解包 {"type": "state_update", "data": {...}} 格式
+      Map<String, dynamic> payload = parsed;
+      if (parsed is Map && parsed.containsKey('type') && parsed.containsKey('data')) {
+        payload = parsed['data'];
+      }
 
-        if (parsed['message_history'] != null) {
-          _messages = List<Map<String, dynamic>>.from(parsed['message_history']);
+      if (payload.containsKey('status')) {
+        final oldStatus = _status;
+        _status = payload['status'] ?? 'idle';
+        _currentTask = payload['current_task'] ?? '无';
+
+        if (payload['message_history'] != null) {
+          _messages = List<Map<String, dynamic>>.from(payload['message_history']);
         }
 
         // 检查状态变化通知
@@ -71,17 +74,6 @@ class WebSocketService extends ChangeNotifier {
       }
     } catch (e) {
       print('解析消息失败: $e');
-    }
-  }
-
-  Future<void> _requestState() async {
-    try {
-      final response = await http.get(Uri.parse('$_serverUrl/api/state'));
-      if (response.statusCode == 200) {
-        _handleMessage(response.body);
-      }
-    } catch (e) {
-      print('请求状态失败: $e');
     }
   }
 
