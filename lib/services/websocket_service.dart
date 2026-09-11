@@ -86,16 +86,25 @@ class WebSocketService extends ChangeNotifier {
   }
 
   Future<void> sendMessage(String message) async {
-    try {
-      final response = await http.post(
-        Uri.parse('$_serverUrl/api/send_message'),
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({'message': message}),
-      );
+    if (!_isConnected || _channel == null) {
+      print('未连接到服务器');
+      return;
+    }
 
-      if (response.statusCode == 200) {
-        // 消息发送成功，等待服务器推送更新
-      }
+    try {
+      // 通过WebSocket发送消息
+      _channel!.sink.add(jsonEncode({
+        'type': 'send_message',
+        'message': message,
+      }));
+
+      // 添加到本地消息历史
+      _messages.add({
+        'from': 'user',
+        'content': message,
+        'timestamp': DateTime.now().toIso8601String(),
+      });
+      notifyListeners();
     } catch (e) {
       print('发送消息失败: $e');
     }
